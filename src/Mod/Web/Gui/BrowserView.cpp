@@ -140,7 +140,7 @@ WebView::WebView(QWidget *parent)
     // Increase html font size for high DPI displays
     QRect mainScreenSize = QApplication::desktop()->screenGeometry();
     if (mainScreenSize.width() > 1920){
-        setZoomFator (mainScreenSize.width()/1920.0);
+        setZoomFactor (mainScreenSize.width()/1920.0);
     }
 }
 
