@@ -30,6 +30,7 @@
 
 #ifdef USE_QT_WEBENGINE
 #include <QWebEngineView>
+class QWebEngineDownloadItem;
 #else
 #include <QWebView>
 #endif
@@ -115,7 +116,10 @@ protected Q_SLOTS:
     void onLoadProgress(int);
     void onLoadFinished(bool);
     void onLinkClicked (const QUrl& url);
-    bool chckHostAllowed(const QString& host);
+    bool checkHostAllowed(const QString& host);
+#ifdef USE_QT_WEBENGINE
+    void onDownloadRequested(QWebEngineDownloadItem *download);
+#endif
     void onDownloadRequested(const QNetworkRequest& request);
     void onUnsupportedContent(QNetworkReply* reply);
     void onOpenLinkInExternalBrowser(const QUrl& url);

@@ -39,6 +39,8 @@
 # ifdef USE_QT_WEBENGINE
 # include <QWebEngineView>
 # include <QWebEngineSettings>
+# include <QWebEngineProfile>
+# include <QWebEngineDownloadItem>
 # if QT_VERSION >= 0x050700
 # include <QWebEngineContextMenuData>
 # endif
@@ -318,9 +320,16 @@ BrowserView::BrowserView(QWidget* parent)
     setCentralWidget(view);
 
 #ifdef USE_QT_WEBENGINE
+    connect(view->page()->profile(), SIGNAL(downloadRequested(QWebEngineDownloadItem*)),
+            this, SLOT(onDownloadRequested(QWebEngineDownloadItem*)));
 #else
     view->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
     view->page()->setForwardUnsupportedContent(true);
+
+    connect(view->page(), SIGNAL(downloadRequested(const QNetworkRequest &)),
+            this, SLOT(onDownloadRequested(const QNetworkRequest &)));
+    connect(view->page(), SIGNAL(unsupportedContent(QNetworkReply*)),
+            this, SLOT(onUnsupportedContent(QNetworkReply*)));
 
     // set our custom cookie manager
     FcCookieJar* cookiejar = new FcCookieJar(this);
@@ -341,6 +350,7 @@ BrowserView::BrowserView(QWidget* parent)
     connect(view, SIGNAL(iconChanged(QIcon)),
             this, SLOT(onIconChanged(QIcon)));
 #endif
+
     connect(view, SIGNAL(loadStarted()),
             this, SLOT(onLoadStarted()));
     connect(view, SIGNAL(loadProgress(int)),
@@ -353,10 +363,6 @@ BrowserView::BrowserView(QWidget* parent)
             this, SLOT(onOpenLinkInExternalBrowser(const QUrl &)));
     connect(view, SIGNAL(openLinkInNewWindow(const QUrl &)),
             this, SLOT(onOpenLinkInNewWindow(const QUrl &)));
-    connect(view->page(), SIGNAL(downloadRequested(const QNetworkRequest &)),
-            this, SLOT(onDownloadRequested(const QNetworkRequest &)));
-    connect(view->page(), SIGNAL(unsupportedContent(QNetworkReply*)),
-            this, SLOT(onUnsupportedContent(QNetworkReply*)));
 }
 
 /** Destroys the object and frees any allocated resources */
@@ -414,11 +420,19 @@ void BrowserView::onLinkClicked (const QUrl & url)
     }
 }
 
-bool BrowserView::chckHostAllowed(const QString& host)
+bool BrowserView::checkHostAllowed(const QString& host)
 {
     // only check if a local file, later we can do here a dialog to ask the user if 
     return host.isEmpty();
 }
+
+#ifdef USE_QT_WEBENGINE
+void BrowserView::onDownloadRequested(QWebEngineDownloadItem *download)
+{
+    QUrl url = download->url();
+    Gui::Dialog::DownloadManager::getInstance()->download(QNetworkRequest(url));
+}
+#endif
 
 void BrowserView::onDownloadRequested(const QNetworkRequest & request)
 {
