@@ -28,17 +28,39 @@
 #include <Gui/MDIView.h>
 #include <Gui/Window.h>
 
-#if QT_VERSION >= 0x040400
+#ifdef USE_QT_WEBENGINE
+#include <QWebEngineView>
+#else
 #include <QWebView>
 #endif
 
-class QWebView;
 class QUrl;
 class QNetworkRequest;
 class QNetworkReply;
 
 namespace WebGui {
 
+#ifdef USE_QT_WEBENGINE
+class WebGuiExport WebView : public QWebEngineView
+{
+    Q_OBJECT
+
+public:
+    WebView(QWidget *parent = 0);
+
+protected:
+    void mousePressEvent(QMouseEvent *event);
+    void wheelEvent(QWheelEvent *event);
+    void contextMenuEvent(QContextMenuEvent *event);
+
+private Q_SLOTS:
+    void triggerContextMenuAction(int);
+
+Q_SIGNALS:
+    void openLinkInExternalBrowser(const QUrl& url);
+    void openLinkInNewWindow(const QUrl&);
+};
+#else
 class WebGuiExport WebView : public QWebView
 {
     Q_OBJECT
@@ -58,6 +80,7 @@ Q_SIGNALS:
     void openLinkInExternalBrowser(const QUrl& url);
     void openLinkInNewWindow(const QUrl&);
 };
+#endif
 
 /**
  * A special view class which sends the messages from the application to

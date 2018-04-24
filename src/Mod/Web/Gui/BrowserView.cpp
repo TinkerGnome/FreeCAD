@@ -36,7 +36,13 @@
 # include <QPrintDialog>
 # include <QScrollBar>
 # include <QMouseEvent>
-# if QT_VERSION >= 0x040400
+# ifdef USE_QT_WEBENGINE
+# include <QWebEngineView>
+# include <QWebEngineSettings>
+# if QT_VERSION >= 0x050700
+# include <QWebEngineContextMenuData>
+# endif
+# else
 # include <QWebFrame>
 # include <QWebView>
 # include <QWebSettings>
@@ -127,6 +133,90 @@ Py::Object BrowserViewPy::setHtml(const Py::Tuple& args)
 }
 }
 
+#ifdef USE_QT_WEBENGINE
+WebView::WebView(QWidget *parent)
+    : QWebEngineView(parent)
+{
+//    // Increase html font size for high DPI displays
+//    QRect mainScreenSize = QApplication::desktop()->screenGeometry();
+//    if (mainScreenSize.width() > 1920){
+//        setTextSizeMultiplier (mainScreenSize.width()/1920.0);
+//    }
+}
+
+void WebView::mousePressEvent(QMouseEvent *event)
+{
+# if QT_VERSION >= 0x050700
+    if (event->button() == Qt::MidButton) {
+        QWebEngineContextMenuData r = page()->contextMenuData();
+        if (r.linkUrl().isValid()) {
+            openLinkInNewWindow(r.linkUrl());
+            return;
+        }
+    }
+#endif
+    QWebEngineView::mousePressEvent(event);
+}
+
+void WebView::wheelEvent(QWheelEvent *event)
+{
+    if (QApplication::keyboardModifiers() & Qt::ControlModifier) {
+        qreal factor = zoomFactor() + (-event->delta() / 800.0);
+        setZoomFactor(factor);
+        event->accept();
+        return;
+    }
+    QWebEngineView::wheelEvent(event);
+}
+
+void WebView::contextMenuEvent(QContextMenuEvent *event)
+{
+# if QT_VERSION >= 0x050700
+    QWebEngineContextMenuData r = page()->contextMenuData();
+    if (r.linkUrl().isValid()) {
+        QMenu menu(this);
+        menu.addAction(pageAction(QWebEnginePage::OpenLinkInThisWindow));
+
+        // building a custom signal for external browser action
+        QSignalMapper* signalMapper = new QSignalMapper (this);
+        signalMapper->setProperty("url", QVariant(r.linkUrl()));
+        connect(signalMapper, SIGNAL(mapped(int)),
+                this, SLOT(triggerContextMenuAction(int)));
+
+        QAction* extAction = menu.addAction(tr("Open in External Browser"));
+        connect (extAction, SIGNAL(triggered()), signalMapper, SLOT(map()));
+        signalMapper->setMapping(extAction, QWebEnginePage::OpenLinkInThisWindow);
+
+        QAction* newAction = menu.addAction(tr("Open in new window"));
+        connect (newAction, SIGNAL(triggered()), signalMapper, SLOT(map()));
+        signalMapper->setMapping(newAction, QWebEnginePage::OpenLinkInNewWindow);
+
+        menu.addAction(pageAction(QWebEnginePage::DownloadLinkToDisk));
+        menu.addAction(pageAction(QWebEnginePage::CopyLinkToClipboard));
+        menu.exec(mapToGlobal(event->pos()));
+        return;
+    }
+#endif
+    QWebEngineView::contextMenuEvent(event);
+}
+
+void WebView::triggerContextMenuAction(int id)
+{
+    QObject* s = sender();
+    QUrl url = s->property("url").toUrl();
+
+    switch (id) {
+    case QWebEnginePage::OpenLinkInThisWindow:
+        openLinkInExternalBrowser(url);
+        break;
+    case QWebEnginePage::OpenLinkInNewWindow:
+        openLinkInNewWindow(url);
+        break;
+    default:
+        break;
+    }
+}
+#else
 /**
  *  Constructs a WebView widget which can be zoomed with Ctrl+Mousewheel
  *  
@@ -210,6 +300,7 @@ void WebView::triggerContextMenuAction(int id)
         break;
     }
 }
+#endif
 
 /* TRANSLATOR Gui::BrowserView */
 
@@ -226,17 +317,24 @@ BrowserView::BrowserView(QWidget* parent)
     view = new WebView(this);
     setCentralWidget(view);
 
+#ifdef USE_QT_WEBENGINE
+#else
     view->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
     view->page()->setForwardUnsupportedContent(true);
-    
+
     // set our custom cookie manager
     FcCookieJar* cookiejar = new FcCookieJar(this);
     view->page()->networkAccessManager()->setCookieJar(cookiejar);
+#endif
 
     // setting background to white
     QPalette palette = view->palette();
     palette.setBrush(QPalette::Base, Qt::white);
+#ifdef USE_QT_WEBENGINE
+    view->setPalette(palette);
+#else
     view->page()->setPalette(palette);
+#endif
     view->setAttribute(Qt::WA_OpaquePaintEvent, true);
 
     connect(view, SIGNAL(loadStarted()),
@@ -358,7 +456,10 @@ void BrowserView::load(const QUrl & url)
         setWindowTitle(url.host());
     }
 
+#ifdef USE_QT_WEBENGINE
+#else
     setWindowIcon(QWebSettings::iconForUrl(url));
+#endif
 }
 
 void BrowserView::setHtml(const QString& HtmlCode,const QUrl & BaseUrl)
@@ -367,7 +468,10 @@ void BrowserView::setHtml(const QString& HtmlCode,const QUrl & BaseUrl)
         stop();
 
     view->setHtml(HtmlCode,BaseUrl);
+#ifdef USE_QT_WEBENGINE
+#else
     setWindowIcon(QWebSettings::iconForUrl(BaseUrl));
+#endif
 }
 
 void BrowserView::stop(void)
@@ -441,11 +545,17 @@ bool BrowserView::onMsg(const char* pMsg,const char** )
         return true;
     } else if (strcmp(pMsg,"ZoomIn")==0){
         textSizeMultiplier += 0.2f;
+#ifdef USE_QT_WEBENGINE
+#else
         view->setTextSizeMultiplier(textSizeMultiplier);
+#endif
         return true;
     } else if (strcmp(pMsg,"ZoomOut")==0){
         textSizeMultiplier -= 0.2f;
+#ifdef USE_QT_WEBENGINE
+#else
         view->setTextSizeMultiplier(textSizeMultiplier);
+#endif
         return true;
     }
 

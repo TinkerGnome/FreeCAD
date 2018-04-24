@@ -12,12 +12,22 @@ set(WebGui_LIBS
 )
 
 if(BUILD_QT5)
-    include_directories(
-        ${Qt5WebKitWidgets_INCLUDE_DIRS}
-    )
-    list(APPEND WebGui_LIBS
-        ${Qt5WebKitWidgets_LIBRARIES}
-    )
+    if (FREECAD_USE_QT_WEBENGINE)
+        add_definitions(-DUSE_QT_WEBENGINE)
+        include_directories(
+            ${Qt5WebEngineWidgets_INCLUDE_DIRS}
+        )
+        list(APPEND WebGui_LIBS
+            ${Qt5WebEngineWidgets_LIBRARIES}
+        )
+    else()
+        include_directories(
+            ${Qt5WebKitWidgets_INCLUDE_DIRS}
+        )
+        list(APPEND WebGui_LIBS
+            ${Qt5WebKitWidgets_LIBRARIES}
+        )
+    endif()
     qt5_add_resources(Web_QRC_SRCS Resources/Web.qrc)
 else()
     qt4_add_resources(Web_QRC_SRCS Resources/Web.qrc)
