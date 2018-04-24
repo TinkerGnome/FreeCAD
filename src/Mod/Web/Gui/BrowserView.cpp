@@ -137,11 +137,11 @@ Py::Object BrowserViewPy::setHtml(const Py::Tuple& args)
 WebView::WebView(QWidget *parent)
     : QWebEngineView(parent)
 {
-//    // Increase html font size for high DPI displays
-//    QRect mainScreenSize = QApplication::desktop()->screenGeometry();
-//    if (mainScreenSize.width() > 1920){
-//        setTextSizeMultiplier (mainScreenSize.width()/1920.0);
-//    }
+    // Increase html font size for high DPI displays
+    QRect mainScreenSize = QApplication::desktop()->screenGeometry();
+    if (mainScreenSize.width() > 1920){
+        setZoomFator (mainScreenSize.width()/1920.0);
+    }
 }
 
 void WebView::mousePressEvent(QMouseEvent *event)
@@ -546,6 +546,7 @@ bool BrowserView::onMsg(const char* pMsg,const char** )
     } else if (strcmp(pMsg,"ZoomIn")==0){
         textSizeMultiplier += 0.2f;
 #ifdef USE_QT_WEBENGINE
+        view->setZoomFactor(textSizeMultiplier);
 #else
         view->setTextSizeMultiplier(textSizeMultiplier);
 #endif
@@ -553,6 +554,7 @@ bool BrowserView::onMsg(const char* pMsg,const char** )
     } else if (strcmp(pMsg,"ZoomOut")==0){
         textSizeMultiplier -= 0.2f;
 #ifdef USE_QT_WEBENGINE
+        view->setZoomFactor(textSizeMultiplier);
 #else
         view->setTextSizeMultiplier(textSizeMultiplier);
 #endif
