@@ -337,6 +337,10 @@ BrowserView::BrowserView(QWidget* parent)
 #endif
     view->setAttribute(Qt::WA_OpaquePaintEvent, true);
 
+#ifdef USE_QT_WEBENGINE
+    connect(view, SIGNAL(iconChanged(QIcon)),
+            this, SLOT(onIconChanged(QIcon)));
+#endif
     connect(view, SIGNAL(loadStarted()),
             this, SLOT(onLoadStarted()));
     connect(view, SIGNAL(loadProgress(int)),
@@ -457,9 +461,15 @@ void BrowserView::load(const QUrl & url)
     }
 
 #ifdef USE_QT_WEBENGINE
+    // See onIconChanged()
 #else
     setWindowIcon(QWebSettings::iconForUrl(url));
 #endif
+}
+
+void BrowserView::onIconChanged(const QIcon& icon)
+{
+    setWindowIcon(icon);
 }
 
 void BrowserView::setHtml(const QString& HtmlCode,const QUrl & BaseUrl)
@@ -469,6 +479,7 @@ void BrowserView::setHtml(const QString& HtmlCode,const QUrl & BaseUrl)
 
     view->setHtml(HtmlCode,BaseUrl);
 #ifdef USE_QT_WEBENGINE
+    // See onIconChanged()
 #else
     setWindowIcon(QWebSettings::iconForUrl(BaseUrl));
 #endif

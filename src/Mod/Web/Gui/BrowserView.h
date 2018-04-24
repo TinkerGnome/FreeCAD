@@ -120,6 +120,7 @@ protected Q_SLOTS:
     void onUnsupportedContent(QNetworkReply* reply);
     void onOpenLinkInExternalBrowser(const QUrl& url);
     void onOpenLinkInNewWindow(const QUrl&);
+    void onIconChanged(const QIcon&);
 
 private:
     WebView* view;
