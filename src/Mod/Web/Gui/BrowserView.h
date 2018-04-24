@@ -42,6 +42,20 @@ class QNetworkReply;
 namespace WebGui {
 
 #ifdef USE_QT_WEBENGINE
+class WebEnginePage : public QWebEnginePage
+{
+    Q_OBJECT
+
+public:
+    WebEnginePage(QObject *parent = 0);
+
+protected:
+    bool acceptNavigationRequest(const QUrl &url, NavigationType type, bool isMainFrame);
+
+Q_SIGNALS:
+    void linkClicked(const QUrl&);
+};
+
 class WebGuiExport WebView : public QWebEngineView
 {
     Q_OBJECT

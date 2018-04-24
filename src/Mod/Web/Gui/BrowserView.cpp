@@ -137,29 +137,26 @@ Py::Object BrowserViewPy::setHtml(const Py::Tuple& args)
 }
 
 #ifdef USE_QT_WEBENGINE
-class WebEnginePage : public QWebEnginePage
+WebEnginePage::WebEnginePage(QObject *parent)
+  : QWebEnginePage(parent)
 {
-public:
-    WebEnginePage(QObject *parent = 0)
-      : QWebEnginePage(parent)
-    {
-    }
+}
 
-protected:
-    bool acceptNavigationRequest(const QUrl &url, NavigationType type, bool isMainFrame)
-    {
-        if (type == QWebEnginePage::NavigationTypeLinkClicked) {
-            Q_EMIT linkClicked(url);
-            return;
-        }
-        return QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame);
+bool WebEnginePage::acceptNavigationRequest(const QUrl &url, NavigationType type, bool isMainFrame)
+{
+    if (type == QWebEnginePage::NavigationTypeLinkClicked) {
+        Q_EMIT linkClicked(url);
+        return true;
     }
-};
+    return QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame);
+}
 
 WebView::WebView(QWidget *parent)
     : QWebEngineView(parent)
 {
     setPage(new WebEnginePage(this));
+    connect(page(), SIGNAL(linkClicked(QUrl)),
+            this, SLOT(linkClicked(QUrl)));
 
     // Increase html font size for high DPI displays
     QRect mainScreenSize = QApplication::desktop()->screenGeometry();
@@ -170,7 +167,7 @@ WebView::WebView(QWidget *parent)
 
 void WebView::mousePressEvent(QMouseEvent *event)
 {
-# if QT_VERSION >= 0x050700
+#if QT_VERSION >= 0x050700
     if (event->button() == Qt::MidButton) {
         QWebEngineContextMenuData r = page()->contextMenuData();
         if (r.linkUrl().isValid()) {
@@ -195,7 +192,7 @@ void WebView::wheelEvent(QWheelEvent *event)
 
 void WebView::contextMenuEvent(QContextMenuEvent *event)
 {
-# if QT_VERSION >= 0x050700
+#if QT_VERSION >= 0x050700
     QWebEngineContextMenuData r = page()->contextMenuData();
     if (r.linkUrl().isValid()) {
         QMenu menu(this);
