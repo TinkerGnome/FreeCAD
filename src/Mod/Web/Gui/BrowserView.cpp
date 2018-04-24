@@ -41,6 +41,7 @@
 # include <QWebEngineSettings>
 # include <QWebEngineProfile>
 # include <QWebEngineDownloadItem>
+# include <QWebEnginePage>
 # if QT_VERSION >= 0x050700
 # include <QWebEngineContextMenuData>
 # endif
@@ -136,9 +137,30 @@ Py::Object BrowserViewPy::setHtml(const Py::Tuple& args)
 }
 
 #ifdef USE_QT_WEBENGINE
+class WebEnginePage : public QWebEnginePage
+{
+public:
+    WebEnginePage(QObject *parent = 0)
+      : QWebEnginePage(parent)
+    {
+    }
+
+protected:
+    bool acceptNavigationRequest(const QUrl &url, NavigationType type, bool isMainFrame)
+    {
+        if (type == QWebEnginePage::NavigationTypeLinkClicked) {
+            Q_EMIT linkClicked(url);
+            return;
+        }
+        return QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame);
+    }
+};
+
 WebView::WebView(QWidget *parent)
     : QWebEngineView(parent)
 {
+    setPage(new WebEnginePage(this));
+
     // Increase html font size for high DPI displays
     QRect mainScreenSize = QApplication::desktop()->screenGeometry();
     if (mainScreenSize.width() > 1920){

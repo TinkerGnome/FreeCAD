@@ -60,6 +60,7 @@ private Q_SLOTS:
 Q_SIGNALS:
     void openLinkInExternalBrowser(const QUrl& url);
     void openLinkInNewWindow(const QUrl&);
+    void linkClicked(const QUrl&);
 };
 #else
 class WebGuiExport WebView : public QWebView
