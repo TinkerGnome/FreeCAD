@@ -147,7 +147,7 @@ bool SMDS_Mesh0DElement::ChangeNodes(const SMDS_MeshNode* nodes[], const int nbN
   {
     vtkUnstructuredGrid* grid = SMDS_Mesh::_meshList[myMeshId]->getGrid();
     vtkIdType npts = 0;
-    vtkIdType* pts = 0;
+    vtkIdTypePtr pts = 0;
     grid->GetCellPoints(myVtkID, npts, pts);
     if (nbNodes != npts)
     {
@@ -155,7 +155,11 @@ bool SMDS_Mesh0DElement::ChangeNodes(const SMDS_MeshNode* nodes[], const int nbN
       return false;
     }
     myNode = nodes[0];
+#ifdef VTK_CELL_ARRAY_V2
+//FIXME: vtk9
+#else
     pts[0] = myNode->getVtkId();
+#endif
 
     SMDS_Mesh::_meshList[myMeshId]->setMyModified();
     return true;

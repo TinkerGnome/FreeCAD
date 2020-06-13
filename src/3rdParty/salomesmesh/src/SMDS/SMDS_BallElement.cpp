@@ -68,9 +68,13 @@ bool SMDS_BallElement::ChangeNode (const SMDS_MeshNode * node)
 {
   vtkUnstructuredGrid* grid = SMDS_Mesh::_meshList[myMeshId]->getGrid();
   vtkIdType npts = 0;
-  vtkIdType* pts = 0;
+  vtkIdTypePtr pts = 0;
   grid->GetCellPoints(myVtkID, npts, pts);
+#ifdef VTK_CELL_ARRAY_V2
+//FIXME: vtk9
+#else
   pts[0] = node->getVtkId();
+#endif
   SMDS_Mesh::_meshList[myMeshId]->setMyModified();
   return true;
 }
@@ -83,7 +87,8 @@ void SMDS_BallElement::Print (std::ostream & OS) const
 const SMDS_MeshNode* SMDS_BallElement::GetNode (const int ind) const
 {
   vtkUnstructuredGrid* grid = SMDS_Mesh::_meshList[myMeshId]->getGrid();
-  vtkIdType npts, *pts;
+  vtkIdType npts;
+  vtkIdTypePtr pts;
   grid->GetCellPoints( myVtkID, npts, pts );
   return SMDS_Mesh::_meshList[myMeshId]->FindNodeVtk( pts[ 0 ]);
 }
