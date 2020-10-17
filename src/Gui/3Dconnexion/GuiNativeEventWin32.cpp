@@ -88,7 +88,8 @@ enum e3dconnexion_pid {
    eSpaceMouseWireless = 0xc62e,
    eSpaceMouseWirelessReceiver = 0xc62f,
    eSpaceMousePROWireless = 0xC631,
-   eSpaceMousePROWirelessReceiver = 0xC632
+   eSpaceMousePROWirelessReceiver = 0xC632,
+   eSpaceMouseEnterprise = 0xC633
 };
 
 enum e3dmouse_virtual_key
@@ -98,8 +99,10 @@ enum e3dmouse_virtual_key
    , V3DK_TOP, V3DK_LEFT, V3DK_RIGHT, V3DK_FRONT, V3DK_BOTTOM, V3DK_BACK
    , V3DK_CW, V3DK_CCW
    , V3DK_ISO1, V3DK_ISO2
-   , V3DK_1, V3DK_2, V3DK_3, V3DK_4, V3DK_5, V3DK_6, V3DK_7, V3DK_8, V3DK_9, V3DK_10
+   , V3DK_1, V3DK_2, V3DK_3, V3DK_4, V3DK_5, V3DK_6, V3DK_7, V3DK_8, V3DK_9, V3DK_10, V3DK_11, V3DK_12
    , V3DK_ESC, V3DK_ALT, V3DK_SHIFT, V3DK_CTRL
+   , V3DK_TAB, V3DK_SPACE, V3DK_ENTER, V3DK_DEL
+   , V3DK_V1LOAD, V3DK_V1SAVE, V3DK_V2LOAD, V3DK_V2SAVE, V3DK_V3LOAD, V3DK_V3SAVE
    , V3DK_ROTATE, V3DK_PANZOOM, V3DK_DOMINANT
    , V3DK_PLUS, V3DK_MINUS
 };
@@ -155,6 +158,23 @@ static const e3dmouse_virtual_key SpacePilotKeys [] =
    , V3DK_DOMINANT, V3DK_ROTATE
 };
 
+//static const e3dmouse_virtual_key SpaceMouseEnterpriseKeys[] =
+//{
+//   V3DK_INVALID
+//   , V3DK_1, V3DK_2, V3DK_3, V3DK_4, V3DK_5, V3DK_6
+//   , V3DK_7, V3DK_8, V3DK_9, V3DK_10, V3DK_11, V3DK_12
+//   , V3DK_ESC, V3DK_TAB, V3DK_SHIFT, V3DK_CTRL, V3DK_ALT
+//   , V3DK_SPACE, V3DK_ENTER, V3DK_DEL, V3DK_MENU
+//   , V3DK_V1LOAD, V3DK_V1SAVE, V3DK_V2LOAD, V3DK_V2SAVE, V3DK_V3LOAD, V3DK_V3SAVE
+//   , V3DK_CW, V3DK_CCW
+//   , V3DK_TOP, V3DK_BOTTOM, V3DK_FRONT, V3DK_BACK, V3DK_RIGHT, V3DK_LEFT
+//   , V3DK_ROTATE, V3DK_ISO1, V3DK_ISO2, V3DK_FIT
+//};
+
+static const e3dmouse_virtual_key SpaceMouseEnterpriseKeys[] =
+{
+   V3DK_INVALID
+};
 
 static const struct tag_VirtualKeys _3dmouseVirtualKeys[]=
 {
@@ -175,7 +195,10 @@ static const struct tag_VirtualKeys _3dmouseVirtualKeys[]=
    , const_cast<e3dmouse_virtual_key *>(SpaceMouseWirelessKeys),
    eSpaceMousePROWirelessReceiver
    , sizeof(SpaceMouseWirelessReceiverKeys)/sizeof(SpaceMouseWirelessReceiverKeys[0])
-   , const_cast<e3dmouse_virtual_key *>(SpaceMouseWirelessReceiverKeys)
+   , const_cast<e3dmouse_virtual_key *>(SpaceMouseWirelessReceiverKeys),
+   eSpaceMouseEnterprise
+   , sizeof(SpaceMouseEnterpriseKeys) / sizeof(SpaceMouseEnterpriseKeys[0])
+   , const_cast<e3dmouse_virtual_key *>(SpaceMouseEnterpriseKeys)
 };
 
 Gui::GuiNativeEvent::GuiNativeEvent(Gui::GUIApplicationNativeEventAware *app)
@@ -801,11 +824,16 @@ bool Gui::GuiNativeEvent::TranslateRawInputData(UINT nInputCode, PRAWINPUT pRawI
 						dwKeystate >>=1;
 					}
 				}
-			}
-            else {
+			} else if (pRawInput->data.hid.bRawData[0] == 0x1c || pRawInput->data.hid.bRawData[0] == 0x1d) { // SpaceMouse Button
+				// ignore SpaceMouse Enterprise butttons (will be handled by the windows driver)
+			} else {
                 // SpaceMouse Plus XT
                 return ParseRawInput(nInputCode, pRawInput);
-            }
+			}
+		 //   else {
+			//	qDebug("pRawInput->data.hid.bRawData[0] =0x%x\n", pRawInput->data.hid.bRawData[0]);
+			//}
+
 		}
    }
    return false;
