@@ -59,19 +59,20 @@ Gui::GuiNativeEvent* Gui::GuiNativeEvent::gMouseInput = 0;
 #include <cmath>
 
 #define LOGITECH_VENDOR_ID 0x46d
-#define CONNEXION_VENDOR_ID  0x256f
+#define CONNEXION_VENDOR_ID 0x256f
 #define _CONSTANT_INPUT_PERIOD 0
+#define _MAX_KEYS 40
 
 #ifndef RIDEV_DEVNOTIFY
 #define RIDEV_DEVNOTIFY 0x00002000
 #endif
 
-#define _TRACE_WM_INPUT_PERIOD 0
-#define _TRACE_RI_TYPE 0
-#define _TRACE_RIDI_DEVICENAME 0
-#define _TRACE_RIDI_DEVICEINFO 0
-#define _TRACE_RI_RAWDATA 0
-#define _TRACE_3DINPUT_PERIOD 0
+#define _TRACE_WM_INPUT_PERIOD 1
+#define _TRACE_RI_TYPE 1
+#define _TRACE_RIDI_DEVICENAME 1
+#define _TRACE_RIDI_DEVICEINFO 1
+#define _TRACE_RI_RAWDATA 1
+#define _TRACE_3DINPUT_PERIOD 1
 
 #ifdef _WIN64
 typedef unsigned __int64 QWORD;
@@ -87,24 +88,26 @@ enum e3dconnexion_pid {
    eSpacePilotPRO = 0xc629,
    eSpaceMouseWireless = 0xc62e,
    eSpaceMouseWirelessReceiver = 0xc62f,
-   eSpaceMousePROWireless = 0xC631,
-   eSpaceMousePROWirelessReceiver = 0xC632,
-   eSpaceMouseEnterprise = 0xC633
+   eSpaceMousePROWireless = 0xc631,
+   eSpaceMousePROWirelessReceiver = 0xc632,
+   eSpaceMouseEnterprise = 0xc633
 };
 
 enum e3dmouse_virtual_key
 {
    V3DK_INVALID=0
    , V3DK_MENU=1, V3DK_FIT
-   , V3DK_TOP, V3DK_LEFT, V3DK_RIGHT, V3DK_FRONT, V3DK_BOTTOM, V3DK_BACK
+   , V3DK_BOTTOM, V3DK_TOP, V3DK_RIGHT, V3DK_LEFT, V3DK_FRONT, V3DK_BACK
    , V3DK_CW, V3DK_CCW
    , V3DK_ISO1, V3DK_ISO2
-   , V3DK_1, V3DK_2, V3DK_3, V3DK_4, V3DK_5, V3DK_6, V3DK_7, V3DK_8, V3DK_9, V3DK_10, V3DK_11, V3DK_12
-   , V3DK_ESC, V3DK_ALT, V3DK_SHIFT, V3DK_CTRL
-   , V3DK_TAB, V3DK_SPACE, V3DK_ENTER, V3DK_DEL
+   , V3DK_1, V3DK_2, V3DK_3, V3DK_4, V3DK_5, V3DK_6, V3DK_7, V3DK_8, V3DK_9, V3DK_10
+   , V3DK_ESC, V3DK_ALT, V3DK_SHIFT, V3DK_CTRL, V3DK_ROTATE
+   , V3DK_PANZOOM, V3DK_DOMINANT
+   , V3DK_ENTER, V3DK_DEL
+   , V3DK_11, V3DK_12
    , V3DK_V1LOAD, V3DK_V1SAVE, V3DK_V2LOAD, V3DK_V2SAVE, V3DK_V3LOAD, V3DK_V3SAVE
-   , V3DK_ROTATE, V3DK_PANZOOM, V3DK_DOMINANT
    , V3DK_PLUS, V3DK_MINUS
+   , V3DK_TAB, V3DK_SPACE
 };
 
 struct tag_VirtualKeys
@@ -158,23 +161,25 @@ static const e3dmouse_virtual_key SpacePilotKeys [] =
    , V3DK_DOMINANT, V3DK_ROTATE
 };
 
-//static const e3dmouse_virtual_key SpaceMouseEnterpriseKeys[] =
-//{
-//   V3DK_INVALID
-//   , V3DK_1, V3DK_2, V3DK_3, V3DK_4, V3DK_5, V3DK_6
-//   , V3DK_7, V3DK_8, V3DK_9, V3DK_10, V3DK_11, V3DK_12
-//   , V3DK_ESC, V3DK_TAB, V3DK_SHIFT, V3DK_CTRL, V3DK_ALT
-//   , V3DK_SPACE, V3DK_ENTER, V3DK_DEL, V3DK_MENU
-//   , V3DK_V1LOAD, V3DK_V1SAVE, V3DK_V2LOAD, V3DK_V2SAVE, V3DK_V3LOAD, V3DK_V3SAVE
-//   , V3DK_CW, V3DK_CCW
-//   , V3DK_TOP, V3DK_BOTTOM, V3DK_FRONT, V3DK_BACK, V3DK_RIGHT, V3DK_LEFT
-//   , V3DK_ROTATE, V3DK_ISO1, V3DK_ISO2, V3DK_FIT
-//};
-
 static const e3dmouse_virtual_key SpaceMouseEnterpriseKeys[] =
 {
    V3DK_INVALID
+   , V3DK_MENU, V3DK_FIT
+   , V3DK_BOTTOM, V3DK_TOP, V3DK_RIGHT, V3DK_LEFT, V3DK_FRONT, V3DK_BACK
+   , V3DK_CW, V3DK_CCW
+   , V3DK_ISO1, V3DK_ISO2
+   , V3DK_1, V3DK_2, V3DK_3, V3DK_4, V3DK_5, V3DK_6, V3DK_7, V3DK_8, V3DK_9, V3DK_10
+   , V3DK_ESC, V3DK_ALT, V3DK_SHIFT, V3DK_CTRL, V3DK_ROTATE
+   , V3DK_ENTER, V3DK_DEL
+   , V3DK_11, V3DK_12
+   , V3DK_V1LOAD, V3DK_V1SAVE, V3DK_V2LOAD, V3DK_V2SAVE, V3DK_V3LOAD, V3DK_V3SAVE
+   , V3DK_TAB, V3DK_SPACE
 };
+
+//static const e3dmouse_virtual_key SpaceMouseEnterpriseKeys[] =
+//{
+//   V3DK_INVALID
+//};
 
 static const struct tag_VirtualKeys _3dmouseVirtualKeys[]=
 {
@@ -738,10 +743,12 @@ bool Gui::GuiNativeEvent::TranslateRawInputData(UINT nInputCode, PRAWINPUT pRawI
 
 		if (sRidDeviceInfo.hid.dwVendorId == LOGITECH_VENDOR_ID  || sRidDeviceInfo.hid.dwVendorId == CONNEXION_VENDOR_ID) {
 			if (pRawInput->data.hid.bRawData[0] == 0x01) { // Translation vector
-
 				TInputData& deviceData = fDevice2Data[pRawInput->header.hDevice];
 				deviceData.fTimeToLive = kTimeToLive;
 				if (bIsForeground) {
+#ifdef _TRACE_RI_RAWDATA
+					qDebug("pRawInput->data.hid.bRawData[0] =0x%x\n", pRawInput->data.hid.bRawData[0]);
+#endif
 					short* pnRawData = reinterpret_cast<short*>(&pRawInput->data.hid.bRawData[1]);
 					// Cache the pan zoom data
 					deviceData.fAxes[0] = static_cast<float>(pnRawData[0]);
@@ -771,6 +778,9 @@ bool Gui::GuiNativeEvent::TranslateRawInputData(UINT nInputCode, PRAWINPUT pRawI
 				// If we are not in foreground do nothing
 				// The rotation vector was zeroed out with the translation vector in the previous message
 				if (bIsForeground) {
+#ifdef _TRACE_RI_RAWDATA
+					qDebug("pRawInput->data.hid.bRawData[0] =0x%x\n", pRawInput->data.hid.bRawData[0]);
+#endif
 					TInputData& deviceData = fDevice2Data[pRawInput->header.hDevice];
 					deviceData.fTimeToLive = kTimeToLive;
 
@@ -787,13 +797,14 @@ bool Gui::GuiNativeEvent::TranslateRawInputData(UINT nInputCode, PRAWINPUT pRawI
 #endif
 					return true;
 				}
-			} else if (pRawInput->data.hid.bRawData[0] == 0x03)  { // Keystate change
+			} else if (pRawInput->data.hid.bRawData[0] == 0x03 || pRawInput->data.hid.bRawData[0] == 0x1c || pRawInput->data.hid.bRawData[0] == 0x1d)  { // Keystate change
 				// this is a package that contains 3d mouse keystate information
 				// bit0=key1, bit=key2 etc.
 
 
 				unsigned long dwKeystate = *reinterpret_cast<unsigned long*>(&pRawInput->data.hid.bRawData[1]);
 #if _TRACE_RI_RAWDATA
+				qDebug("pRawInput->data.hid.bRawData[0] =0x%x\n", pRawInput->data.hid.bRawData[0]);
 				qDebug("ButtonData =0x%x\n", dwKeystate);
 #endif
 				// Log the keystate changes
@@ -809,7 +820,7 @@ bool Gui::GuiNativeEvent::TranslateRawInputData(UINT nInputCode, PRAWINPUT pRawI
 					unsigned long dwChange = dwKeystate ^ dwOldKeystate;
 
 
-					for (int nKeycode=1; nKeycode<33; nKeycode++) {
+					for (int nKeycode=1; nKeycode<_MAX_KEYS; dwChange, ++nKeycode) {
 						if (dwChange & 0x01) {
 							int nVirtualKeyCode = HidToVirtualKey(sRidDeviceInfo.hid.dwProductId, nKeycode);
 							if (nVirtualKeyCode) {
@@ -824,16 +835,16 @@ bool Gui::GuiNativeEvent::TranslateRawInputData(UINT nInputCode, PRAWINPUT pRawI
 						dwKeystate >>=1;
 					}
 				}
-			} else if (pRawInput->data.hid.bRawData[0] == 0x1c || pRawInput->data.hid.bRawData[0] == 0x1d) { // SpaceMouse Button
-				// ignore SpaceMouse Enterprise butttons (will be handled by the windows driver)
+			//} else if (pRawInput->data.hid.bRawData[0] == 0x1c || pRawInput->data.hid.bRawData[0] == 0x1d) { // SpaceMouse Button
+			//	// ignore SpaceMouse Enterprise butttons (will be handled by the windows driver)
+			//	return ParseRawInput(nInputCode, pRawInput);
 			} else {
                 // SpaceMouse Plus XT
-                return ParseRawInput(nInputCode, pRawInput);
+#ifdef _TRACE_RI_RAWDATA
+				qDebug("pRawInput->data.hid.bRawData[0] =0x%x\n", pRawInput->data.hid.bRawData[0]);
+#endif
+				return ParseRawInput(nInputCode, pRawInput);
 			}
-		 //   else {
-			//	qDebug("pRawInput->data.hid.bRawData[0] =0x%x\n", pRawInput->data.hid.bRawData[0]);
-			//}
-
 		}
    }
    return false;

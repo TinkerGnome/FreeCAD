@@ -45,6 +45,7 @@ DlgCustomizeSpNavSettings::DlgCustomizeSpNavSettings(QWidget *parent) :
         this->setMessage(tr("No Spaceball Present"));
         return;
     }
+	this->useNative = spaceballMotionGroup()->GetBool("Native3DxWare", false);
     this->init = true;
     ui->setupUi(this);
     initialize();
@@ -143,12 +144,22 @@ void DlgCustomizeSpNavSettings::initialize()
     ui->CBEnableZoom  ->setEnabled(ui->CBTranslations->isChecked());
     ui->CBReverseZoom ->setEnabled(ui->CBTranslations->isChecked() && ui->CBEnableZoom->isChecked());
     ui->SliderZoom    ->setEnabled(ui->CBTranslations->isChecked() && ui->CBEnableZoom->isChecked());
+
+	ui->CBNative      ->setChecked(this->useNative);
+	ui->GBNavSettings ->setEnabled(!this->useNative);
 }
 
 void DlgCustomizeSpNavSettings::on_ButtonDefaultSpNavMotions_clicked()
 {
     spaceballMotionGroup()->Clear(); 
     initialize();
+}
+
+void DlgCustomizeSpNavSettings::on_CBNative_clicked()
+{
+	this->useNative = ui->CBNative->isChecked();
+	spaceballMotionGroup()->SetBool("Native3DxWare", this->useNative);
+	initialize();
 }
 
 void DlgCustomizeSpNavSettings::on_CBDominant_clicked()

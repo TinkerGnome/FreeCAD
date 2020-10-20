@@ -46,7 +46,8 @@ namespace Gui
             void onAddMacroAction(const QByteArray&);
             void onRemoveMacroAction(const QByteArray&);
             void onModifyMacroAction(const QByteArray&);
-            void on_CBDominant_clicked();
+			void on_CBNative_clicked();
+			void on_CBDominant_clicked();
             void on_CBFlipYZ_clicked();
             void on_CBRotations_clicked();
             void on_CBTranslations_clicked();
@@ -83,6 +84,7 @@ namespace Gui
         private:
             std::unique_ptr<Ui_DlgCustomizeSpNavSettings> ui;
             bool init;
+			bool useNative;
         };
     }
 }
