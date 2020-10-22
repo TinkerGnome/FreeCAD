@@ -259,7 +259,9 @@ def getFillForObject(o, defaultFill, source):
         elif isinstance(o,str):
             material = FreeCAD.ActiveDocument.getObject(o)
         if material:
-            if hasattr(material, 'Color') and material.Color:
+            if hasattr(material, 'SectionColor') and material.SectionColor:
+                return material.SectionColor
+            elif hasattr(material, 'Color') and material.Color:
                 return material.Color
     return defaultFill
 
@@ -507,7 +509,7 @@ def getSVG(source,
                                 # temporarily disabling fill patterns
                                 svgcache += Draft.get_svg(s,
                                                           linewidth=0,
-                                                          fillstyle=Draft.getrgb(objectFill),
+                                                          fillstyle=Draft.getrgb(objectFill,testbw=False),
                                                           direction=direction.negative(),
                                                           color=lineColor)
                     svgcache += "</g>\n"
@@ -1382,8 +1384,9 @@ class SectionPlaneTaskPanel:
             return QtGui.QIcon(":/icons/Sketcher_Sketch.svg")
         elif obj.isDerivedFrom("App::DocumentObjectGroup"):
             return QtGui.QApplication.style().standardIcon(QtGui.QStyle.SP_DirIcon)
-        else:
-            return QtGui.QIcon(":/icons/Tree_Part.svg")
+        elif hasattr(obj.ViewObject, "Icon"):
+            return QtGui.QIcon(obj.ViewObject.Icon)
+        return QtGui.QIcon(":/icons/Part_3D_object.svg")
 
     def update(self):
         'fills the treewidget'
