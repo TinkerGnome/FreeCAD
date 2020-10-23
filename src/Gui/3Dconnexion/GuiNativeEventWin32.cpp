@@ -956,6 +956,7 @@ bool Gui::GuiNativeEvent::TranslateSpaceMouseNew(UINT nInputCode, PRAWINPUT pRaw
 				if (dwKeyCode == ENTPR_ROTATE) {
 					// toggle rotate
 					f3dMouseParams.SetRotate(!f3dMouseParams.IsRotate());
+					getMainWindow()->showMessage(QString::fromLatin1("Rotation %1").arg(f3dMouseParams.IsRotate() ? tr("enabled") : tr("disabled")), 2000);
 				}
 				else if (dwKeyCode >= ENTPR_V1RESTORE && dwKeyCode <= ENTPR_V3SAVE) {
 					// restore / save view
