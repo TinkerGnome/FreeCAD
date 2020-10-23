@@ -34,6 +34,7 @@
 #if QT_VERSION >= 0x050000
 #include "GuiRawInputEventFilter.h"
 #endif
+#include "MDIView.h"
 
 class QMainWindow;
 class GUIApplicationNativeEventAware;
@@ -68,8 +69,10 @@ namespace Gui
         static bool RawInputEventFilter(void* msg, long* result);
         void OnRawInput(UINT nInputCode, HRAWINPUT hRawInput);
         UINT GetRawInputBuffer(PRAWINPUT pData, PUINT pcbSize, UINT cbSizeHeader);
-        bool TranslateRawInputData(UINT nInputCode, PRAWINPUT pRawInput);
-        bool ParseRawInput(UINT nInputCode, PRAWINPUT pRawInput);
+		MDIView* getActiveView() const;
+		bool TranslateRawInputData(UINT nInputCode, PRAWINPUT pRawInput);
+        bool TranslateSpaceMouseNew(UINT nInputCode, PRAWINPUT pRawInput, DWORD dwProductId);
+        bool TranslateSpaceMouseOld(UINT nInputCode, PRAWINPUT pRawInput, DWORD dwProductId);
         void On3dmouseInput();
 
         class TInputData
@@ -96,7 +99,8 @@ namespace Gui
         MouseParameters f3dMouseParams;     // Rotate, Pan Zoom etc.
         // use to calculate distance traveled since last event
         DWORD fLast3dmouseInputTime;
-        static Gui::GuiNativeEvent* gMouseInput;
+        static GuiNativeEvent* gMouseInput;
+		std::map< unsigned short, std::pair<MDIView *, QString> > fSavedViews;
 	};
 }
 
