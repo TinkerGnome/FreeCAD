@@ -5198,6 +5198,60 @@ bool SketchObject::increaseBSplineDegree(int GeoId, int degreeincrement /*= 1*/)
     return true;
 }
 
+bool SketchObject::decreaseBSplineDegree(int GeoId, int degreedecrement /*= 1*/)
+{
+    Base::StateLocker lock(managedoperation, true); // no need to check input data validity as this is an sketchobject managed operation.
+
+    if (GeoId < 0 || GeoId > getHighestCurveIndex())
+        return false;
+
+    const Part::Geometry *geo = getGeometry(GeoId);
+
+    if (geo->getTypeId() != Part::GeomBSplineCurve::getClassTypeId())
+        return false;
+
+    const Part::GeomBSplineCurve *bsp = static_cast<const Part::GeomBSplineCurve *>(geo);
+
+    const Handle(Geom_BSplineCurve) curve = Handle(Geom_BSplineCurve)::DownCast(bsp->handle());
+
+    std::unique_ptr<Part::GeomBSplineCurve> bspline(new Part::GeomBSplineCurve(curve));
+
+    try {
+        int cdegree = bspline->getDegree();
+
+        // degree must be >= 1
+        int maxdegree = cdegree - degreedecrement;
+        if (maxdegree == 0)
+            return false;
+        bool ok = bspline->approximate(Precision::Confusion(), 20, maxdegree, 0);
+        if (!ok)
+            return false;
+    }
+    catch (const Base::Exception& e) {
+        Base::Console().Error("%s\n", e.what());
+        return false;
+    }
+
+    // FIXME: Avoid to delete the whole geometry but only delete invalid constraints
+    // and unused construction geometries
+#if 0
+    const std::vector< Part::Geometry * > &vals = getInternalGeometry();
+
+    std::vector< Part::Geometry * > newVals(vals);
+
+    newVals[GeoId] = bspline.release();
+
+    // AcceptGeometry called from onChanged
+    Geometry.setValues(newVals);
+#else
+    delGeometry(GeoId);
+    int newId = addGeometry(bspline.release());
+    exposeInternalGeometry(newId);
+#endif
+
+    return true;
+}
+
 bool SketchObject::modifyBSplineKnotMultiplicity(int GeoId, int knotIndex, int multiplicityincr)
 {
     Base::StateLocker lock(managedoperation, true); // no need to check input data validity as this is an sketchobject managed operation.
