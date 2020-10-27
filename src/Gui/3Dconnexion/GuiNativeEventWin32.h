@@ -71,8 +71,9 @@ namespace Gui
         UINT GetRawInputBuffer(PRAWINPUT pData, PUINT pcbSize, UINT cbSizeHeader);
 		MDIView* getActiveView() const;
 		bool TranslateRawInputData(UINT nInputCode, PRAWINPUT pRawInput);
-        bool TranslateSpaceMouseNew(UINT nInputCode, PRAWINPUT pRawInput, DWORD dwProductId);
-        bool TranslateSpaceMouseOld(UINT nInputCode, PRAWINPUT pRawInput, DWORD dwProductId);
+        bool TranslateSpaceMouseNewGeneric(UINT nInputCode, PRAWINPUT pRawInput, DWORD dwProductId);
+        bool TranslateSpaceMouseEnterprise(UINT nInputCode, PRAWINPUT pRawInput, DWORD dwProductId);
+        bool TranslateSpaceMouseOldGeneric(UINT nInputCode, PRAWINPUT pRawInput, DWORD dwProductId);
         void On3dmouseInput();
 
         class TInputData
